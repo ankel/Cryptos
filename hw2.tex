@@ -1,0 +1,287 @@
+%Source for HW2, Winter 2012
+
+\documentclass[11pt]{article}
+
+\include{macros}
+
+
+\newcommand{\bitsoracle}{{\mathsf{Bits}}}
+\newcommand{\indcpa}{{\mathrm{IND}\mbox{-}\mathrm{CPA}}}
+\newcommand{\indcpaz}{{\mathrm{IND}\mbox{-}\mathrm{CPA0}}}
+\newcommand{\indcpao}{{\mathrm{IND}\mbox{-}\mathrm{CPA1}}}
+\newcommand{\indrcpa}{{\mathrm{IND}\$\mbox{-}\mathrm{CPA}}}
+\newcommand{\rorcpa}{\mathrm{RoR}}
+\newcommand{\Func}{\mathsf{Func}}
+
+%\newcommand{\Adv}{\mathrm{Adv}}
+\newcommand{\ExpRoR}[2]{\mathsf{Exp}^{\mathrm{ror}}_{#1}{(#2)}}
+\newcommand{\ExpPRF}[3]{\mathsf{Exp}^{\mathrm{prf}\mbox{-}#3}_{#1}{(#2)}}
+\newcommand{\ExpINDz}[2]{\mathsf{Exp}^{\mathrm{ind}\mbox{-}\mathrm{cpa0}}_{#1}{(#2)}}
+\newcommand{\ExpINDo}[2]{\mathsf{Exp}^{\mathrm{ind}\mbox{-}\mathrm{cpa1}}_{#1}{(#2)}}
+\newcommand{\ExpINDR}[2]{\mathsf{Exp}^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}{(#2)}}
+\newcommand{\ExpINDCG}[2]{\mathsf{Exp}^{\mathrm{ind}\mbox{-}\mathrm{cpa}\mbox{-}\mathrm{cg}}_{#1}{(#2)}}
+\newcommand{\ExpAuth}[2]{\mathsf{Exp}^{\mathrm{auth}}_{#1}{(#2)}}
+\newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
+\newcommand{\AdvRoR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\AdvINDR}[2]{\Adv^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}(#2)}
+\newcommand{\AdvIND}[2]{\Adv^{\mathrm{ind}\mbox{-}\mathrm{cpa}}_{#1}(#2)}
+
+\newcommand{\AdvAuth}[2]{\Adv^{\mathrm{auth}}_{#1}(#2)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\bf Problem Set 2 \\[2ex] 
+       \rm\normalsize Modern Cryptography, Spring 2013\\
+       David Baldwin, Binh Tran}
+\date{}
+\author{}
+\begin{document}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace*{-1in}
+
+\section*{Problem 1}
+
+
+Let $<L_0,R_0> \gets M$ where $\left | L_0 \right | = \left | R_0 \right |$ then the operation of the Feistel network can be described as below: \\
+First round: \\
+$L_1 \gets R_0 $ \\
+$R_1 \gets L_0 \xor F_{k_1}(R_0)$ \\
+Second round: \\
+$L_2 \gets L_0 \xor F_{k_1}(R_0)$ \\
+$R_2 \gets R_0 \xor F_{k_2}(L_0 \xor F_{k_1}(R_0))$ \\
+
+\textit{This is the behavior as described in the problem statement.}\\
+
+
+Construct an adversary  $A^{\calO(.)}$ for $\mathsf{Exp}^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{\Pi}{(A)}$
+
+
+$<L_2^0,R_2^0> \gets \calO(0^l||0^l)$ \\
+$<L_2^1,R_2^1> \gets \calO(1^l||0^l)$ \\
+if $ L_2^0 \xor L_2^1 = 0^l $ then return $1$ \\
+else return $0$\\
+
+where $L_2^i$ and $R_2^i$ are parsed from the output of \calO (.) or the input values and $\left | L_0 \right | = \left | R_0 \right |$
+
+{\bf \underline{Analysis}}\\
+
+In $\ExpINDo{\Pi}{A}$ \\
+
+$L_2^0 \xor L_2^1 = L_0^0 \xor  F_{k_1}(R_0^0) \xor L_0^1 \xor  F_{k_1}(R_0^1) \\
+= L_0^0 \xor L_0^1$ ( because $F_{k_1}(R_0^0) = F_{k_1}(R_0^1) = F_{k_1}(0^l)$ )\\
+$= 0^n \xor 1^n = 0^n$
+
+In $\ExpINDz{\Pi}{A}$ \\
+
+$Pr(A return 1) = Pr (L_2^0 \xor L_2^1 = 0^l) = 2^{-l}$\\
+
+Thus $Adv^{prf}_{F(2)}(A) = 1 - 2^{-l}$
+
+\section*{Problem 2} 
+ 
+Let~$A$ be an RoR adversary that takes one oracle, has time complexity~$t$, asks~$q$ queries, these totalling~$\mu$ bits in length.   Then there exists an adversary $B$ that has 
+
+\[
+\AdvIND{\Pi}{B} \geq \AdvRoR{\Pi}{A} 
+\]
+
+that has time complexity~$t$, asks~$q$ queries, these totalling~$\mu$ bits in length.   
+
+\begin{figure*}[h]
+\center
+\fpage{.5}{
+\hpagess{.4}{.55}
+{
+\experimentv{$B^{\calO(L,R)}$}\\
+return $A^{O'(.)}$
+}
+{
+\oraclev{$\calO'(X)$}\\
+$b \getsr \{0,1\}^n$\\
+return $\calO_K(b,X)$\\
+}
+}
+\end{figure*}
+
+
+
+{\bf \underline{Proof}}\\
+
+
+$\AdvIND{\Pi}{B} = \Pr\left[\ExpINDo{\Pi}{B}=1 \right] - \Pr\left[\ExpINDz{\Pi}{B}=1 \right]$\\
+
+$\AdvIND{\Pi}{B} = \Pr\left[\ExpINDo{\Pi}{B}=1 \right] - (1 - \Pr\left[\ExpINDz{\Pi}{B}=0 \right])$\\
+
+
+
+Let $b_{rand}$ be the random bit inside RoR oracle $O(.)$ in $\ExpRoR{\Pi}{A}$
+
+$\AdvRoR{\Pi}{A}  = 2  \cdot( 1/2 \cdot \Pr\left[\ExpRoR{\Pi}{A}=1 | b_{rand}=1 \right] + 1/2\cdot \Pr\left[\ExpRoR{\Pi}{A}=0 | b_{rand}=0 \right]) - 1$\\
+
+We can see from the adversary $B^{A(.,.)}$ that 
+
+$\Pr\left[\ExpRoR{\Pi}{A}=1 | b_{rand}=1 \right] = \Pr\left[\ExpINDo{\Pi}{A}=1 | \calO(L,R) = E_k(R) \right]$ \\
+
+and
+
+$\Pr\left[\ExpRoR{\Pi}{A}=0 | b_{rand}=0 \right] = \Pr\left[\ExpINDz{\Pi}{A}=1 | \calO(L,R) = E_k(L) \right] $\\
+
+Since we are simulating the exact experiment as RoR. Therefore
+  
+$\AdvIND{\Pi}{B} = \Pr\left[\ExpRoR{\Pi}{A}=1 |  b_{rand}=1 \right] - (1 - \Pr\left[\ExpRoR{\Pi}{A}=0 |  b_{rand}=0 \right])$\\ 
+
+And
+
+$\AdvIND{\Pi}{B} \geq  \AdvRoR{\Pi}{A}  $\\ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Problem 3}
+
+Let~$A$ be a IND-CPA adversary that takes one oracle, has time complexity~$t$, asks~$q$
+queries, these totalling~$\mu$ bits in length.  Then there exists an IND\$-CPA adversary $B$ that has 
+
+\[
+\AdvINDR{\Pi}{B}\cdot 2 \geq \AdvIND{\Pi}{A}
+\]
+
+that has time complexity~$t$, asks~$q$ queries, these totalling~$\mu$ bits in length.   
+
+\begin{figure*}[h]
+\center
+\fpage{.5}{
+\hpagess{.4}{.55}
+{
+
+\experimentv{$B^{\calO(.)}$}\\
+$b \getsr \bits$\\
+$b' \getsr A^{\calO'(\cdot)}$\\
+if $b=b'$ return 1\\
+return 0
+
+}
+{
+\oraclev{$\calO'(L,R)$}\\
+if $b=1$ return $\calO(L)$\\
+return $\calO(R)$
+}
+}
+
+\end{figure*}
+
+
+
+
+{\bf \underline{Proof}}\\
+
+
+Let $b_{rand}$ be the bit set by IND\$-CPA oracle $\calO$ such that $\calO(X) \gets E_k(X)$ when $b_{rand}=1$ and random bits otherwise.  For convenience, we use the IND-CPA-CG definition below. \\
+\[
+\AdvINDR{\Pi}{B} = 2 \cdot ( 1/2 \cdot \Pr\left[\ExpINDR{\Pi}{B}=1 \right| b_{rand} = 1] + 1/2 \cdot \Pr\left[\ExpINDR{\Pi}{B}=1 | b_{rand} = 0 \right]) - 1\\
+\]
+When $b_{rand}=1$, we are perfectly simulating the enviroment for IND-CPA. We choose a random bit $b$ and return the left or right encryption accordingly, which is exactly what the IND-CPA enviroment does for adversary $A$. Thus
+
+$\Pr\left[\ExpINDR{\Pi}{B}=1 \right| b_{rand} = 1]) = \Pr\left[\ExpINDCG{\Pi}{A}=1\right]$\\
+
+When $b_{rand}=0$, we claim that 
+
+$\Pr\left[\ExpINDR{\Pi}{B}=1 \right| b_{rand} = 0]) = 1/2$\\
+
+In this experiment, by the definition of IND\$-CPA, the input to the function is irrelevant.  Thus, our experiment in this scenario is equivalent to the following.
+
+\begin{figure*}[h]
+\center
+\fpage{.5}{
+\hpagess{.4}{.55}
+{
+\experimentv{$B^{\calO(.)}$}\\
+$b' \getsr A^{\calO'(\cdot)}$\\
+$b \getsr \bits$\\
+if $b=b'$ return 1\\
+return 0
+}
+{
+\oraclev{$\calO'(L,R)$}\\
+return $z \getsr \{0,1\}^n$
+}
+}
+\end{figure*}
+
+Regardless of the output of $A^{O'(.,,)}=b'$, the experiment will succeed/fail based on the coin flip $b$ with probabilty 0.5. Unlike when $b_{rand} = 1$ The result of $A$ and $b$ are unrelated.  \\
+
+Thus
+
+$\AdvINDR{\Pi}{B} = 2 \cdot ( 1/4  + 1/2 \cdot \Pr\left[\ExpINDCG{\Pi}{A}=1\right] ) - 1$\\
+$\AdvINDR{\Pi}{B} = -1/2 + 1/2 \cdot (\Pr\left[\ExpINDo{\Pi}{A}=1\right] + (1 - \Pr\left[\ExpINDz{\Pi}{A}=1\right])) $\\
+$\AdvINDR{\Pi}{B} \cdot 2 \geq \AdvIND{\Pi}{A}$
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Problem 4} 
+
+Design an adversary $A^{\calO(.)}$ as follows
+
+\begin{figure*}[h]
+\center
+\fpage{1}{
+\hpagess{.4}{1}
+{
+\experimentv{$A^{\calO(.,.)}$}\\
+$m_0 \gets 0^n$\\
+$m_1 \getsr \{0,1\}^n - \{0^n\}$\\
+$<IV, c_0>  = \calO(m_0,m_0) $\\
+$<IV',c_0'> = \calO(m_1,m_0) $\\
+return $c_0 \xor IV = c_0' \xor IV'$
+}
+
+}
+\end{figure*}
+
+
+
+We see that $IV \xor C_0 = f_k(M_0)$. If $f_k$ is truly random function, we will output 1 when we are in the right world with probability 1. In the left world, we will only output 1 when $f_k(m_0) = f_k(m_1)$ or $1/2^n$.  Thus 
+
+\[
+\AdvIND{\Pi}{A} = 1-1/2^n
+\]
+
+\section*{Problem 5}
+Design an adversary $A^{\calO(.,.)}$ as follows
+
+
+\begin{figure*}[h]
+\center
+\fpage{}{
+\hpagess{.4}{1}
+{
+\experimentv{$A^{\calO(.)\calE(.)}$}\\
+$m_0 \gets 0^n$\\
+$<IV,c_0,c_1> \getsr \calE_k(m_0)$ \\
+$b' \gets \calO(IV||0^n||c_0||c_1)$\\
+if $b=\bot$ return 0\\
+return 1\\
+}
+
+}
+\end{figure*}
+
+
+
+We create an adversary that encrypts a single block and recieve three blocks as output: the IV, the encrypted message and the auth-code, respectively. We can then forge a message by prepending any ciphertext we choose in between the IV and the rest of the message.  $c_0 = f_k(m_0 \xor IV) = f_k(IV)$ and $c_1 = f_k(0^n \xor f_k(IV)) = f_k(f_k(IV))$.  When we decrypt, $D_k(f_k(f_k(IV))) =  f_k^{-1}(f_k(f_k(IV))) \xor c_0 = 0^n$.  Thus, the adversary conforms to the form $X||0^n$ for a decryption that is not authentic.
+\\
+
+
+$\Pr\left[\ExpAuth{\Pi}{A}=1 | b = 1 \right] = 1$ since we can always forge a new ciphertext given the block cipher.  $\Pr\left[\ExpAuth{\Pi}{A}=0 | b = 0 \right] = 1$ as well since the adversary will return bottom when its forgery does not work. Thus:
+\[
+\AdvAuth{\Pi}{A} = 1 \,.
+\]
+
+
+
+\end{document}
