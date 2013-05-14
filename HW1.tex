@@ -1,0 +1,118 @@
+\documentclass[11pt]{article}
+
+\include{macros}
+\newcommand{\bitsoracle}{{\mathsf{Bits}}}
+\newcommand{\indcpa}{{\mathrm{IND}\mbox{-}\mathrm{CPA}}}
+\newcommand{\indrcpa}{{\mathrm{IND}\$\mbox{-}\mathrm{CPA}}}
+\newcommand{\rorcpa}{\mathrm{RoR}}
+\newcommand{\Func}{\mathsf{Func}}
+ 
+%\newcommand{\Adv}{\mathrm{Adv}}
+\newcommand{\ExpRoR}[2]{\mathsf{Exp}^{\mathrm{ror}}_{#1}{(#2)}}
+\newcommand{\ExpPRF}[3]{\mathsf{Exp}^{\mathrm{prf}\mbox{-}#3}_{#1}{(#2)}}
+\newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
+\newcommand{\AdvRoR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\ExpVP}[2]{\mathsf{Exp}^{\mathrm{vp}}_{#1}{(#2)}}
+\newcommand{\AdvVP}[2]{\Adv^{\mathrm{vp}}_{#1}(#2)}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\bf Problem Set 1 \\[2ex] 
+       \rm\normalsize Modern Cryptography, Spring 2013}
+\date{}
+\author{}
+\begin{document}
+\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace*{-1in}
+\begin{center}{Assigned: April 12, Due: April 24\\}
+\end{center}
+
+\section*{Problem 1 [20 points]} 
+Consider the following security notion for a function family $E \colon
+\calK \times \calD \to \calR$.  Let~$A$ be an adversary that takes one
+oracle, namely $E_K(\cdot)$ for a random (and secret) key~$K \in
+\calK$.  The adversary can adaptively query this oracle with various $X \in
+\calD$, receiving $E_K(X)$ in response.  After asking its queries,
+adversary~$A$ outputs a pair $(X^*,Y^*)$, and
+``wins'' if $Y^* = E_K(X^*)$.  To prevent trivial wins for the
+adversary, $X^*$ must not have been asked to the oracle.
+Thus we define the following ``valid-pair'' experiment:
+
+\begin{figure*}[h]
+\center
+\fpage{.6}{
+\hpagess{.55}{.35}
+{
+\experimentv{$\ExpVP{E}{A}$:}\\
+$Q \gets \emptyset$\\
+$K \getsr \calK$\\
+$(X^*,Y^*) \getsr A^{g(\cdot)}$\\
+if $X^* \in \calQ$ then return 0\\
+if $E_K(X^*) = Y^*$ then return 1\\
+return 0
+}
+{
+\medskip
+\oraclev{$g(X)$}\\
+$Y \gets E_K(X)$\\
+$\calQ \gets \calQ \cup \{X\}$\\
+return~$Y$
+}
+}
+\end{figure*}
+with the corresponding advantage measure
+$\Adv_E^{\mathrm{vp}}(A) = \Pr\left[ \ExpVP{E}{A}=1 \right]$.
+The resources counted are the number of queries~$q$, time
+complexity~$t$, and the total length of the queries in bits, $\mu$.
+
+You are to prove, via a security reduction, the informal statement
+``security in the PRF sense implies security in the VP sense.''
+Here is the shell of a theorem statement:
+
+\begin{theorem}
+Let $\calK$ be a non-empty set, and let $\calD,\calR \subseteq
+\bits^*$. Let $E \colon \calK \times \calD \to
+\calR$ be a function family.  Let~$A$ be a valid-pair adversary
+for~$E$, running in time~$t$, asking~$q$ queries, these totaling
+$\mu$ bits in length.  Then there exists a prf adversary~$B$ such
+that
+\[
+\AdvVP{E}{A} \mbox{ ??? } \AdvPRF{E}{B} + \mbox{???}
+\]
+where~$B$ runs in time $t'= \mbox{???} $, asks $q'= \mbox{???} $ queries, these
+totaling~$\mu'= \mbox{???} $ bits.
+\end{theorem}
+
+Complete the theorem statement, and prove it.
+
+\section*{Problem 2}
+Find a key~$K$ such that $DES_K(\cdot)=DES^{-1}_K(\cdot)$.  Explain
+why your key satisifies this property.
+
+\noindent
+Note: there is a typo in Figure 2.1 of the the [BR] notes that is
+important for this problem.  Just before the return statement, the
+line should read: $C \gets \mathrm{IP}^{-1}(R_{16} \concat L_{16})$.
+(That is, you ``undo'' the Feistel swap in the last round.)
+
+
+\section*{Problem 3}
+Bellare-Rogaway notes, problem 3.1.  Carefully describe the attack,
+and give the PRP advantage of it.
+
+\section*{Problem 4}
+Bellare-Rogaway notes, problem 3.2.
+
+\section*{Problem 5}
+Bellare-Rogaway notes, problem 3.6.  This requires you to do another
+security reduction.  No hand-waving, please!  Write up your solution
+as a nice theorem, like the one above, or the one we saw in class.
+
+Before you start trying to do the reduction, be clear on what kind of
+adversary you assume is given, and what kind of adversary you want to build.  It's
+easy to get confused, and end up with a security implication that
+points in the wrong ``direction''.
+
+\end{document}
+

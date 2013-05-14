@@ -1,0 +1,205 @@
+%Source for HW2, Winter 2012
+
+\documentclass[11pt]{article}
+
+\include{macros}
+\newcommand{\bitsoracle}{{\mathsf{Bits}}}
+\newcommand{\indcpa}{{\mathrm{IND}\mbox{-}\mathrm{CPA}}}
+\newcommand{\indrcpa}{{\mathrm{IND}\$\mbox{-}\mathrm{CPA}}}
+\newcommand{\rorcpa}{\mathrm{RoR}}
+\newcommand{\Func}{\mathsf{Func}}
+
+%\newcommand{\Adv}{\mathrm{Adv}}
+\newcommand{\ExpRoR}[2]{\mathsf{Exp}^{\mathrm{ror}}_{#1}{(#2)}}
+\newcommand{\ExpPRF}[3]{\mathsf{Exp}^{\mathrm{prf}\mbox{-}#3}_{#1}{(#2)}}
+\newcommand{\ExpINDR}[2]{\mathsf{Exp}^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}{(#2)}}
+\newcommand{\ExpAuth}[2]{\mathsf{Exp}^{\mathrm{auth}}_{#1}{(#2)}}
+\newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
+\newcommand{\AdvRoR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\AdvINDR}[2]{\Adv^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}(#2)}
+\newcommand{\AdvAuth}[2]{\Adv^{\mathrm{auth}}_{#1}(#2)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\bf Problem Set 2, version 2 \\[2ex] 
+       \rm\normalsize Modern Cryptography, Spring 2013}
+\date{}
+\author{}
+\begin{document}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace*{-1in}
+\begin{center}{Assigned: April 26, Updated: April 29, Due: May 6 \\}
+\end{center}
+
+\section*{Problem 1}
+[BR] chapter 3, problem 8, part (a).
+
+\section*{Problem 2} 
+Let $\Pi=\left( \calK, \calE, \calD \right)$ be a symmetric encryption
+scheme. Consider the following notion of security that we will call
+\textit{indistinguishability of real or random encryptions} (RoR).  
+Let~$A$ be an adversary that takes one oracle, has time complexity~$t$, asks~$q$
+queries, these totalling~$\mu$ bits in length.  
+
+\begin{figure*}[h]
+\center
+\fpage{.5}{
+\hpagess{.4}{.55}
+{
+\experimentv{$\ExpRoR{\Pi}{A}$:}\\
+$b \getsr \bits$\\
+$K \getsr \calK$\\
+$b' \getsr A^{\calO(\cdot)}$\\
+if $b=b'$ return 1\\
+return 0
+}
+{
+\oraclev{$\calO(X)$}\\
+If $b=1$ then $Y \getsr \calE_K(X)$\\
+else\\
+\hspace*{1ex}$Z \getsr \bits^{|X|}$\\
+\hspace*{1ex}$Y \getsr \calE_K(Z)$\\
+return~$Y$
+}
+}
+\end{figure*}
+
+
+Then define the
+$\rorcpa$ advantage of~$A$ against~$\Pi$ by
+\[
+\AdvRoR{\Pi}{A} = 2\cdot\Pr\left[\ExpRoR{\Pi}{A}=1 \right] - 1
+\]
+
+Prove that security in the IND-CPA sense
+implies RoR security.  This requires you to do a
+reduction.  Please give a nice theorem statement, followed by your proof, 
+and please be precise in your notation and your arguments.
+
+(If you are feeling ambitious, you can try to prove the the converse:
+that RoR security implies IND-CPA security.
+Again, this is to be done by a reduction, but the argument is
+trickier.  But skip this until you've finished the other problems.)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Problem 3}
+Let $\Pi=\left( \calK, \calE, \calD \right)$ be a symmetric encryption
+scheme. Consider the following notion of security that we will call
+\textit{indistinguishability from random bits} under a
+chosen-plaintext attack (IND\$-CPA).  
+Let~$A$ be an adversary that takes one oracle, has time complexity~$t$, asks~$q$
+queries, these totalling~$\mu$ bits in length.  
+\begin{figure*}[h]
+\center
+\fpage{.5}{
+\hpagess{.4}{.55}
+{
+\experimentv{$\ExpINDR{\Pi}{A}$:}\\
+$b \getsr \bits$\\
+$K \getsr \calK$\\
+$b' \getsr A^{\calO(\cdot)}$\\
+if $b=b'$ return 1\\
+return 0
+}
+{
+\oraclev{$g(X)$}\\
+$Y \getsr \calE_K(X)$\\
+If $b=1$ Return $Y$\\
+$Z \getsr \bits^{|Y|}$\\
+return~$Z$
+}
+}
+\end{figure*}
+
+
+Then define the
+IND\$-CPA advantage of~$A$ against~$\Pi$ by
+\[
+\AdvINDR{\Pi}{A} = 2\cdot\Pr\left[\ExpINDR{\Pi}{A}=1 \right] - 1
+\]
+
+
+Show that the IND\$-CPA security implies the IND-CPA security.
+
+\if{0}
+\begin{enumerate}
+\item Show that the IND\$-CPA security notion, given in class, implies the
+IND-CPA notion.  \\
+
+\item Conversely, show that IND-CPA does \textit{not} imply
+IND\$-CPA.  One way to do this is as follows: assume you have an
+encryption scheme~$\Pi=(\calK,\calE,\calD)$ that is IND-CPA secure, and
+then modify to produce a new scheme $\Pi' = (\calK',\calE',\calD')$
+such that (1) scheme $\Pi'$ is provably IND-CPA secure, if $\Pi$ is;
+and (2) scheme $\Pi'$ is provably \textit{not} IND\$-CPA secure.
+\end{enumerate}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Problem 4} 
+Let $\Pi=(\calK,\calE,\calD)$ be a symmetric encryption scheme
+based on an underlying function family $E \colon \bits^k \times
+\bits^n \to \bits^n$.  On input $M \in (\bits^n)^+$ (ie, a string whose length
+is a positive multiple of~$n$ bits), $\calE_K(M)$ operates as follows.  It parses~$M$ into $n$-bit blocks $M_1,\ldots,M_\ell$, samples a random IV $C_0 \getsr \bits^n$, and then for all $i \in \{1,2,\ldots,\ell\}$ it sets $C_i \gets C_{i-1} \xor E_K(M_i)$. Finally, it returns $C_0C_1\cdots C_\ell$ as the ciphertext.  Decryption occurs in the obvious way.  You are to prove or disprove this claim: if $E$ is a secure PRF, then $\Pi$ is IND-CPA secure.  To disprove it, give a carefully stated, nicely formatted attack.  To prove it, follow the steps used in the CBC proof and give a nice theorem statement.
+
+\section*{Problem 5}
+Let $\Pi=\left( \calK, \calE, \calD \right)$ be a symmetric encryption
+scheme. Consider the following notion of security that we will call
+\textit{authenticity of ciphertexts} (Auth).  
+
+\begin{figure*}[h]
+\center
+\fpage{.5}{
+\hpagess{.4}{.55}
+{
+\experimentv{$\ExpAuth{\Pi}{A}$:}\\
+$b \getsr \bits$\\
+$K \getsr \calK$\\
+$b' \getsr A^{\calE_K(\cdot),\calO(\cdot)}$\\
+if $b=b'$ return 1\\
+return 0
+}
+{
+\oraclev{$\calO(C)$}\\
+If $b=1$ then $M \gets \calD_K(C)$\\
+else $M \gets \bot$ \\
+return~$M$
+}
+}
+\end{figure*}
+Then define the
+Auth-advantage of~$A$ against~$\Pi$ by
+\[
+\AdvAuth{\Pi}{A} = 2\cdot\Pr\left[\ExpAuth{\Pi}{A}=1 \right] - 1 \,.
+\]
+To prevent trivial wins, we forbid Auth-adversaries from asking~$C$ to
+the right oracle if~$C$ was previously returned by the left oracle.
+(In other words, replay doesn't count.)
+
+Intuitively, this notion captures the class of attacks in which an
+attacker tries to ``forge'' a ciphertext, and have that forgery be
+accepted by the receiver.  
+Encryption schemes that are Auth-secure should withstand such attacks,
+thereby providing an authenticity guarantee to the ciphertexts it creates.
+The forgery might be produced by altering
+or combining ciphertexts that it has previously observed, which is why we give an
+oracle for $\calE_K$. 
+
+A folklore suggestion for achieving Auth security is to take a strong
+encryption scheme and introduce ``redundancy'' into the plaintext.
+So, consider the following variant of random-IV CBC-mode.
+On input a plaintext $M \in (\bits^n)^+$, where~$n$ is the blocksize
+of the underlying blockcipher: (1) $M' \gets M \concat 0^n$, and (2)
+output the ciphertext~$C$ resulting from normal CBC mode encryption of
+$M'$. (Recall that, when $u,v$ are strings, $u \concat v$ is the
+concatenation of these.)  Decryption of ciphertext~$C$ proceeds in the obvious way: 
+(1) decrypt~$C$ using normal CBC mode decryption to get $M'$, 
+(2) if $M'$ is of the form $X \concat 0^n$, return~$X$; else
+return~$\bot$.
+
+Does this CBC-with-redundancy encryption scheme achieve authenticity
+of ciphertexts?  If yes, prove it.  If no, exhibit an efficient attack
+and give it's Auth-advantage.
+\end{document}
