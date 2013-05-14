@@ -1,0 +1,93 @@
+%Source for HW3, Winter 2012
+
+\documentclass[11pt]{article}
+
+\include{macros}
+\newcommand{\bitsoracle}{{\mathsf{Bits}}}
+\newcommand{\indcpa}{{\mathrm{IND}\mbox{-}\mathrm{CPA}}}
+\newcommand{\indrcpa}{{\mathrm{IND}\$\mbox{-}\mathrm{CPA}}}
+\newcommand{\rorcpa}{\mathrm{RoR}}
+\newcommand{\Func}{\mathsf{Func}}
+
+%\newcommand{\Adv}{\mathrm{Adv}}
+\newcommand{\ExpUFCMA}[2]{\mathsf{Exp}^{\mathrm{ufcma}}_{#1}{(#2)}}
+\newcommand{\ExpRoR}[2]{\mathsf{Exp}^{\mathrm{ror}}_{#1}{(#2)}}
+\newcommand{\ExpPRF}[3]{\mathsf{Exp}^{\mathrm{prf}\mbox{-}#3}_{#1}{(#2)}}
+\newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
+\newcommand{\AdvRoR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\AdvUFCMA}[2]{\Adv^{\mathrm{ufcma}}_{#1}(#2)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\bf Problem Set 3 \\[2ex] 
+       \rm\normalsize Modern Cryptography, Spring 2013}
+\date{}
+\author{}
+\begin{document}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace*{-1in}
+
+\begin{center}{Assigned: May 9, Due: May 16\\}
+\end{center}
+
+\section*{Problem 1}
+Let $E \colon \bits^n \times \bits^n \to \bits^n$ be a blockcipher,
+and consider the following three functions, each mapping $\bits^n
+\times \bits^n$ to $\bits^n$:
+\begin{enumerate}
+\item $f_1(V,M) = E_V(V \xor M) \xor M$
+\item $f_2(V,M) = E_V(V \xor M) \xor V \xor M$
+\item $f_3(V,M) = E_V(M) \xor V$
+\end{enumerate}
+Imagine that you are an attacker, and you would like to exhibit
+collisions in these functions.  Specifically, for each~$i=1,2,3$, you need
+to find two pairs of inputs  $(V,M) \neq (V',M')$ such that
+$f_i(V,M) = f_i(V',M')$.  
+
+Your attacks are mounted in the ideal cipher
+model for~$E$, so assume that you are given oracles for
+$E(\cdot,\cdot)$ and $E^{-1}(\cdot,\cdot)$.  To the former oracle, you
+may ask $(K,X)$ and receive $Y \gets E_K(X)$ in return; to the latter oracle,
+you may ask $(K,Y)$ and receive $X \gets E^{-1}_K(Y)$ in return.  Your
+attacks should be as efficient as possible, i.e.\ ask as few oracle
+queries as you can.
+
+If you find that one or more of $f_1,f_2,f_3$ is does not yield
+collisions in a reasonable number of queries, you might take off your
+``attacker hat'' and put on your ``prover hat'', to see if you can
+argue that query-efficient attacks are unlikely to exist.  (Ask
+yourself: what is the maximum number of queries that you can hope to
+force an attacker to make for a $2n$-bit to $n$-bit mapping?)
+
+\newcommand{\oPi}{\overline{\Pi}}
+\newcommand{\ocalK}{\overline{\mathcal{K}}}
+\newcommand{\ocalE}{\overline{\mathcal{E}}}
+\newcommand{\ocalD}{\overline{\mathcal{D}}}
+
+\vspace*{-.25in}
+\section*{Problem 2} Let~$F \colon \bits^k \times \bits^* \to \bits^n$
+be a function family, and let $\Pi = (\calK,\calE,\calD)$ be an
+encryption scheme.  Consider the following encryption scheme $\oPi =
+(\ocalK,\ocalE,\ocalD)$ where 
+\[
+\ocalE_{K1,K2}(M) = \calE_{K1}(M)\concat F_{K2}(K1 \concat M)\, .
+\]  
+To decrypt, $\ocalD_{K1,K2}(C)$
+operates as follows: (1) parse~$C$ into $Y \concat T$ where $|T|=n$; (2) $X
+\gets \calD_{K1}(Y)$, and if~$X = \bot$ then return~$\bot$; (3) if
+$F_{K2}(K1 \concat X)=T$ then return~$X$, else return $\bot$.
+
+\paragraph{Part 1.} Assume that~$F$ is a good PRF, and that $\Pi$ is IND\$-CPA secure.
+Are these assumptions sufficient to prove that $\oPi$ is IND\$-CPA
+secure?  If so, please give a detailed proof sketch (i.e. how would
+the proof be structured, what reductions would be necessary and how
+would they work, etc.), and what you expect will be the security
+bound.  If not, please give an efficient attack.
+
+\paragraph{Part 2.} Are these assumptions sufficient to prove that $\oPi$ is AUTH-secure?
+If so, please give a detailed proof sketch (as above), and what you
+expect will be the security bound.  If not, please give an efficient attack.
+
+\end{document}
