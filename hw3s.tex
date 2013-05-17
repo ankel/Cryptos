@@ -41,27 +41,24 @@ and consider the following three functions, each mapping $\bits^n
 \begin{enumerate}
 \item $f_1(V,M) = E_V(V \xor M) \xor M $\\
 
-This function is collision-resistant because I say so and as far as I'm concern, my word in infallible.\\
-
-\item $f_2(V,M) = E_V(V \xor M) \xor V \xor M$
-
-
-
-This function is not collision resistant. Consider the following attack that makes no queries at all:
+This function is not collision resistant. Consider the following attack that makes 1 query:\\
 \begin{enumerate}
-\item $V, M, C \getsr \bits^n$ and $C \neq 0^n$\\
-\item return $(V, M)$ and $(V \xor C, M \xor C)$\\
+\item $V \gets 0^n$
+\item $M_1 \getsr \bits^n$
+\item $M_2 \getsr E^-1_V(M_1)$
+\item return $(V, M_1)$ and $(V, M_2)$
 \end{enumerate}
 
 \textbf{Analysis}
-The above attack works trivially because \\
-\[
-V \xor C \xor M \xor C = V \xor M
-\]
-and thus
-\[
-E_V(V \xor C \xor M \xor C ) \xor (V \xor C \xor M \xor C ) = E_V(V \xor M) \xor (V \xor M)
-\]
+
+\begin{eqnarray*}
+f_1(V, M_1) = E_V(V \xor M_1) \xor M_1\\
+=E_V(M_1) \xor M_1
+\end{eqnarray*}
+
+\item $f_2(V,M) = E_V(V \xor M) \xor V \xor M$
+
+This function is collision-resistant because I say so and my words are infallible.\\
 \item $f_3(V,M) = E_V(M) \xor V$
 \\This function is also not collision resistant. Consider the following attack that makes 2 queries:\\
 \begin{enumerate}
@@ -158,13 +155,55 @@ $F_{K2}(K1 \concat X)=T$ then return~$X$, else return $\bot$.
 
 \paragraph{Part 1.} Assume that~$F$ is a good PRF, and that $\Pi$ is IND\$-CPA secure.
 Are these assumptions sufficient to prove that $\oPi$ is IND\$-CPA
-secure?  If so, please give a detailed proof sketch (i.e. how would
-the proof be structured, what reductions would be necessary and how
-would they work, etc.), and what you expect will be the security
-bound.  If not, please give an efficient attack.
+secure?
+
+\newcommand{\INDR}{IND\$-CPA}
+\newcommand{\ExpINDz}[2]{\mathsf{Exp}^{\mathrm{ind}\mbox{-}\mathrm{cpa0}}_{#1}{(#2)}}
+\newcommand{\ExpINDo}[2]{\mathsf{Exp}^{\mathrm{ind}\mbox{-}\mathrm{cpa1}}_{#1}{(#2)}}
+\newcommand{\ExpINDR}[2]{\mathsf{Exp}^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}{(#2)}}
+\newcommand{\AdvINDR}[2]{\Adv^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}(#2)}
+
+\textsc{Answer} 
+\\$\oPi$ is not \INDR. Here's an adversary A for $\ExpINDR{\oPi}{(A)}$ that makes 2 query totaling $2n$ bits length, $O(1)$ calculation time:
+\begin{enumerate}
+\item M $\getsr \bits^n$
+\item $X_l \concat X_r \gets X \gets \calO(M)$ where $|X_r| = n$
+\item $Y_l \concat Y_r \gets Y \gets \calO(M)$ where $|Y_r| = n$
+\item if $X_r = Y_r$ then \texttt{ return 1} else \texttt{ return 0}
+\end{enumerate}
+
+\textsc{Analysis}\\
+\begin{enumerate}
+\item In $\ExpINDo{\oPi}{A}$\\
+$X_r = F_{K2}(K1 \concat M)$ and $Y_r = F_{K2}(K1 \concat M)$ by the construction of $\oPi$ thus\\
+\begin{center}
+ $Pr(\ExpINDo{\oPi}{A}=1) =1$
+\end{center}
+
+\item In $\ExpINDz{\oPi}{A}$\\
+If $\calO (M)$ is random then A returns 1 when 2 random bit strings has the same suffix 
+
+\begin{eqnarray*}
+Pr(\ExpINDo{\oPi}{A}=1) &=& Pr (X_r = Y_r)\\
+&=& Pr (X_r = T: Y_r = T)\\
+&=& \frac{1}{2^n}
+\end{eqnarray*}
+
+\item $\AdvINDR{\oPi}{A}$\\
+
+\begin{eqnarray*}
+\AdvINDR{\oPi}{A} &=& Pr(\ExpINDo{\oPi}{A}=1)-Pr(\ExpINDz{\oPi}{A}=1)\\
+&=& 1 - \frac{1}{2^n}
+\end{eqnarray*}
+
+\end{enumerate}
 
 \paragraph{Part 2.} Are these assumptions sufficient to prove that $\oPi$ is AUTH-secure?
 If so, please give a detailed proof sketch (as above), and what you
 expect will be the security bound.  If not, please give an efficient attack.
+
+\textsc{Answer}\\
+
+
 
 \end{document}
