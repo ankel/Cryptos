@@ -18,6 +18,7 @@
 \newcommand{\AdvUFCMA}[2]{\Adv^{\mathrm{ufcma}}_{#1}(#2)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \title{\bf Problem Set 3 \\[2ex] 
        \rm\normalsize Modern Cryptography, Spring 2013}
 \date{}
@@ -29,37 +30,95 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace*{-1in}
 
-\begin{center}{Assigned: May 9, Due: May 16\\}
+\begin{center}{Group: Binh Tran, David Baldwin\\}
 \end{center}
 
 \section*{Problem 1}
 Let $E \colon \bits^n \times \bits^n \to \bits^n$ be a blockcipher,
 and consider the following three functions, each mapping $\bits^n
 \times \bits^n$ to $\bits^n$:
+
 \begin{enumerate}
-\item $f_1(V,M) = E_V(V \xor M) \xor M$
-\item $f_2(V,M) = E_V(V \xor M) \xor V \xor M$
-\item $f_3(V,M) = E_V(M) \xor V$
+\item $f_1(V,M) = E_V(V \xor M) \xor V $\\
+
+This function is not collision-resistant.
+
+\begin{enumerate}
+\item $V_1,V_2 \gets {0,1}^n$
+\item return $(V_1, E^{-1}_{V_1}(V_1) \xor V_1), (V_2, E^{-1}_{V_2}(V_2) \xor V_2)$
 \end{enumerate}
-Imagine that you are an attacker, and you would like to exhibit
-collisions in these functions.  Specifically, for each~$i=1,2,3$, you need
-to find two pairs of inputs  $(V,M) \neq (V',M')$ such that
-$f_i(V,M) = f_i(V',M')$.  
 
-Your attacks are mounted in the ideal cipher
-model for~$E$, so assume that you are given oracles for
-$E(\cdot,\cdot)$ and $E^{-1}(\cdot,\cdot)$.  To the former oracle, you
-may ask $(K,X)$ and receive $Y \gets E_K(X)$ in return; to the latter oracle,
-you may ask $(K,Y)$ and receive $X \gets E^{-1}_K(Y)$ in return.  Your
-attacks should be as efficient as possible, i.e.\ ask as few oracle
-queries as you can.
+\textbf{Analysis}
+The above attack works because \\
+\[
+f_1(V, E^{-1}_{V}(V) \xor V) =  E_{V}(E^{-1}_{V}(V)) \xor V
+\]
+\[
+f_1(V, E^{-1}_{V}(V) \xor V) =  0
+\]
 
-If you find that one or more of $f_1,f_2,f_3$ is does not yield
-collisions in a reasonable number of queries, you might take off your
-``attacker hat'' and put on your ``prover hat'', to see if you can
-argue that query-efficient attacks are unlikely to exist.  (Ask
-yourself: what is the maximum number of queries that you can hope to
-force an attacker to make for a $2n$-bit to $n$-bit mapping?)
+
+\item $f_2(V,M) = E_V(V \xor M) \xor V \xor M$
+
+
+This function is collision resistant. 
+
+\textbf{Analysis}
+
+We know that for functions such as $f(V,M) = E_V(M)$ it is possible to find a collision for any two distinct key pairs $V_1$ and $V_2$ and a message $M_1$ by computing $M_2 = E^{-1}_{V_2}(E_{V_1}(M_1))$.  Both pairs then encrypt to $E_V1(M_1)$.  It is also true that functions in the form (a) $f(V,M) = E_V(M) \xor M$ are secure.  Intuitively, this is because it is diffcult to mount the same attack, because the value of $M$ appears both within the encryption function as well as outside of it.
+
+It is not easy to utilize the key variable to eliminate this outer term, anything in the form (b) $f(E^{-1}_{k_1}(.),M)$ will lead to an decryption that is useless for finding collisions, i.e., $E_{E^{-1}_{k_1}(z)}( E^{-1}_{k_1}(z) )$ .  To effectively find collisions in this situation, it is sufficient to find $E_V(M) = M$ but doing so requires one to exhaustively search the keyspace, which may yield similar complexity to a birthday attack.
+
+Thus, the function
+
+\[
+f_1(V,M) = E_V(V \xor M) \xor M 
+\]
+
+is no more susceptible to an attack than the form (a). Such an attack would require $E_V(V \xor M) \xor M$ to be easier to find collisons than $E_V(M) \xor M$.  But $V \xor M$ is a linear transform over a function that maps its inputs arbitarily, so it should be no weaker.
+
+For the same reasons
+\[
+f_2(V,M) = E_V(V \xor M) \xor M \xor V
+\]
+should be collision resistant as well. Any application of a the function with M as an decryption  also appears outside the function.  If V is also the same value, wee may be able to find a colission, but this suffers from the same issue as seen in form (b) above.
+
+Consider $f'_2(V,N)=E_V(N) \xor N$ where $N=V \xor M$. $f'_2$ is the same as $f_2$, thus\\If $\exists (V, M), (V', M')$ such that $f_2(V,M)=f_2(V', M')$ then\\ $\exists (V, N), (V', N)$ such that $f'_2(V,N)=f'_2(V', N')$\\
+
+In that case,\\
+\begin{eqnarray*}
+E_V(N) \xor N &=& E_{V'}(N') \xor N'\\
+E_V(N)&=& E_{V'}(N') \xor N' \xor N\\
+\end{eqnarray*}
+
+If $E_V$ and $E_{V'}$ are both strong PRF, then $E_{V'}(N') \xor N' \xor N$ is computationally indistinguishable from $T \getsr \bits^n$
+\begin{eqnarray*}
+Pr(N': E_V(N)= E_{V'}(N') \xor N' \xor N)&=&Pr(T: E_V(N)=T)\\
+&=&\frac{1}{2^n}
+\end{eqnarray*}
+and the adversary will need to makes about $\sqrt{2^n}$ queries before the collision happens due to the birthday attack.
+\item $f_3(V,M) = E_V(M) \xor V$
+\\This function is also not collision resistant. Consider the following attack that makes 2 queries:\\
+\begin{enumerate}
+\item $V_1, V_2 \getsr \bits^n$ where $V_1 \neq V_2$\\
+\item $M_1 \gets E^-1_{V_1}(V_1)$\\
+\item $M_2 \gets E^-1_{V_2}(V_2)$\\
+\end{enumerate}
+
+\textbf{Analysis}
+\begin{eqnarray*}
+E_{V_1}(M_1) \xor V_1 &=& E_{V_1}(E^-1_{V_1}(V_1)) \xor V_1 \\
+&=& V_1 \xor V_1 \\
+&=& 0^n\\
+\end{eqnarray*}
+and
+\begin{eqnarray*}
+E_{V_2}(M_2) \xor V_2 &=& E_{V_2}(E^-1_{V_2}(V_2)) \xor V_2 \\
+&=& V_2 \xor V_2 \\
+&=& 0^n\\
+\end{eqnarray*}
+This causes the collision\\
+\end{enumerate}
 
 \newcommand{\oPi}{\overline{\Pi}}
 \newcommand{\ocalK}{\overline{\mathcal{K}}}
@@ -81,13 +140,127 @@ $F_{K2}(K1 \concat X)=T$ then return~$X$, else return $\bot$.
 
 \paragraph{Part 1.} Assume that~$F$ is a good PRF, and that $\Pi$ is IND\$-CPA secure.
 Are these assumptions sufficient to prove that $\oPi$ is IND\$-CPA
-secure?  If so, please give a detailed proof sketch (i.e. how would
-the proof be structured, what reductions would be necessary and how
-would they work, etc.), and what you expect will be the security
-bound.  If not, please give an efficient attack.
+secure?
+
+\newcommand{\INDR}{IND\$-CPA}
+\newcommand{\ExpINDz}[2]{\mathsf{Exp}^{\mathrm{ind}\mbox{-}\mathrm{cpa0}}_{#1}{(#2)}}
+\newcommand{\ExpINDo}[2]{\mathsf{Exp}^{\mathrm{ind}\mbox{-}\mathrm{cpa1}}_{#1}{(#2)}}
+\newcommand{\ExpINDR}[2]{\mathsf{Exp}^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}{(#2)}}
+\newcommand{\AdvINDR}[2]{\Adv^{\mathrm{ind\$}\mbox{-}\mathrm{cpa}}_{#1}(#2)}
+\newcommand{\Exp}[3]{\mathsf{Exp}^{\mathrm{#1}}_{#2}{(#3)}}
+\newcommand{\Adva}[3]{\mathsf{Adv}^{\mathrm{#1}}_{#2}{(#3)}}
+
+\textsc{Answer} 
+\\$\oPi$ is not \INDR. Here's an adversary A for $\ExpINDR{\oPi}{(A)}$ that makes 2 query totaling $2n$ bits length, $O(1)$ calculation time:
+\begin{enumerate}
+\item M $\getsr \bits^n$
+\item $X_l \concat X_r \gets X \gets \calO(M)$ where $|X_r| = n$
+\item $Y_l \concat Y_r \gets Y \gets \calO(M)$ where $|Y_r| = n$
+\item if $X_r = Y_r$ then \texttt{ return 1} else \texttt{ return 0}
+\end{enumerate}
+
+\textsc{Analysis}\\
+\begin{enumerate}
+\item In $\ExpINDo{\oPi}{A}$\\
+$X_r = F_{K2}(K1 \concat M)$ and $Y_r = F_{K2}(K1 \concat M)$ by the construction of $\oPi$ thus\\
+\begin{center}
+ $Pr(\ExpINDo{\oPi}{A}=1) =1$
+\end{center}
+
+\item In $\ExpINDz{\oPi}{A}$\\
+If $\calO (M)$ is random then A returns 1 when 2 random bit strings has the same suffix 
+
+\begin{eqnarray*}
+Pr(\ExpINDo{\oPi}{A}=1) &=& Pr (X_r = Y_r)\\
+&=& Pr (X_r = T: Y_r = T)\\
+&=& \frac{1}{2^n}
+\end{eqnarray*}
+
+\item $\AdvINDR{\oPi}{A}$\\
+
+\begin{eqnarray*}
+\AdvINDR{\oPi}{A} &=& Pr(\ExpINDo{\oPi}{A}=1)-Pr(\ExpINDz{\oPi}{A}=1)\\
+&=& 1 - \frac{1}{2^n}
+\end{eqnarray*}
+
+\end{enumerate}
 
 \paragraph{Part 2.} Are these assumptions sufficient to prove that $\oPi$ is AUTH-secure?
 If so, please give a detailed proof sketch (as above), and what you
 expect will be the security bound.  If not, please give an efficient attack.
+
+\textsc{Answer}\\
+$\oPi$ is AUTH-secure as shown using the following security reduction:
+
+\textit{Statement: } If there exists an adversary A, making $q$ queries totaling $\mu$ bits length and doing calculation in $t$ time, in $\Exp{AUTH}{\oPi}{A}$ then there exists an adversary B, making $q$ queries totaling $/mu + qn$ bits length and doing calculation in $t + O(\frac{\mu}{q})$ time, in $\Exp{PRF}{F}{B}$ that satisfy
+
+\begin{eqnarray*}
+\Adva{PRF}{F}{B} = \Adva{AUTH}{\oPi}{A} -  \frac{1}{2^n}
+\end{eqnarray*}
+
+\textit{Building B:}\\
+\begin{itemize}
+\item $K_1 \gets \bits^n$
+\item Run A
+\item If A asks for encryption of M
+\begin{itemize}
+\item $X \gets \calE_{K_1}(M)$ where $\calE$ is simulated by B
+\item $Y \gets \calO(K_1 \concat M)$
+\item give $(X \concat Y)$ to A
+\end{itemize}
+\item If A asks for verification of Z
+\begin{itemize}
+\item $C \concat D \gets Z$ where $|D|=n$
+\item $I \gets \calE^{-1}_{K_1}(C)$ where $\calE^{-1}$ is simulated by B
+\item $J \gets \calO(K_1 \concat I)$
+\item if $D==J$ then gives $1$ to A else give $\bot$ to A
+\end{itemize}
+\item Run until A halts.
+\item $C_0 \concat T_0 \gets A$ where $|T_0|=n$
+\item $M_0 \gets \calE^{-1}_{K_1}(C_0)$ where $\calE^{-1}$ is simulated by B
+\item $T_1 \gets \calO(M_0)$
+\item if $T_0 == T_1$ returns 1 else return 0
+\end{itemize}
+
+\textit{Analysis}\\
+\begin{itemize}
+\item In $\Exp{PRF-1}{F}{B}$\\
+Since B simulate $\oPi$ exactly, and B only returns 1 when A manages to break $\oPi$ in $Exp{AUTH}{\oPi}{A}$
+\begin{equation}\label{prf1}
+Pr(\Exp{PRF-1}{F}{B}=1)= \Adva{AUTH}{\oPi}{A}
+\end{equation}
+\item In $\Exp{PRF-0}{F}{B}$\\
+In this case, B returns 1 when a tag chosen randomly happens to match the tag returned by A\\
+\begin{equation}\label{prf0}
+Pr(\Exp{PRF-0}{F}{B}=1) = \frac{1}{2^n}
+\end{equation}
+\item $\Adva{PRF}{F}{B}$\\
+From \ref{prf1} and \ref{prf0}
+\begin{equation}
+\Adva{PRF}{F}{B} = \Adva{AUTH}{\oPi}{A} -  \frac{1}{2^n}
+\end{equation}
+\item Run time behavior:\\
+\begin{itemize}
+\item Every time A asks a query, either to the Encrypt or Decrypt oracle, B asks $\calO$ a query. Thus B makes $q$ queries in total.
+\item Every time A asks a $m$-bit $M$ query, B makes a $(|K \concat M| = n + m)$-bit query. After $q$ queries, the total length is $\mu + qn$ bits
+\item Every time A asks a $l$-block query, B has to spend an extra $O(l)$ time to encrypt / decrypt those blocks. In the end A queries total $\frac{\mu}{q}$ blocks thus B spends $t+O(\frac{\mu}{q})$ time
+\end{itemize}
+\end{itemize}
+
+\paragraph{Part 3.}
+$\ocalE'_{K1,K2}(M) = \calE_{K1}(M)\concat F_{K2}(K1 \concat |M|)$ is secure in neither IND\$-CPA nor AUTH\\
+
+For IND\$-CPA, the same attack on $\oPi$ also works on $\oPi'$ The reason is that the tag in $\oPi'$ is generated by the length of the plain text, thus same plain text - having the same length - will result in same tag.\\
+
+The following attacker can bypass $\oPi'$ in AUTH game - Assume that $|X|=|Y| \rightarrow |\calE(X)|=|\calE(Y)|$
+
+\begin{itemize}
+\item $M_1 \getsr \bits^n$
+\item $C_1 \concat T_1 \gets \calE'(M_1)$ where $|T_1|=n$
+\item $C_2 \getsr \bits^{n}$
+\item return $C_2 \concat T_1$
+\end{itemize}
+
+The reason this works is that $T_1$ is the universal tag for all n-bit plain text, and by our assumption, n-bit cipher text. $C_2$ is one of such cipher text, and thus will be accepted by the decryption.
 
 \end{document}
